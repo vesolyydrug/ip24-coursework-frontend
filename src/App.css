@@ -1,0 +1,271 @@
+/* General styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f6f6f6;
+}
+
+.planner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.header button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.header button:hover {
+  background-color: #1565c0;
+}
+
+/* Calendar scroll container */
+.calendar-scroll {
+  overflow-x: auto; /* Enable horizontal scrolling */
+  white-space: nowrap; /* Prevent wrapping */
+  scrollbar-width: thin; /* Thin scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+}
+
+.calendar-scroll::-webkit-scrollbar {
+  height: 6px; /* Thin scrollbar */
+  background: #f1f3f4; /* Track color */
+}
+
+.calendar-scroll::-webkit-scrollbar-thumb {
+  background: #ccc; /* Thumb color */
+  border-radius: 4px; /* Rounded thumb */
+}
+
+.calendar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #aaa; /* Thumb color on hover */
+}
+
+/* Calendar grid */
+.calendar {
+  display: inline-flex; /* Display days horizontally */
+  gap: 10px;
+  border-top: 1px solid #e0e0e0;
+  border-left: 1px solid #e0e0e0;
+}
+
+/* Day styles */
+.day {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
+  min-width: 250px; /* Increased width for each day */
+  min-height: 400px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f1f3f4;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.day-header h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Hours scroll container */
+.hours-scroll {
+  flex-grow: 1;
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 400px; /* Limit the height */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+}
+
+.hours-scroll::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome, Safari, and Opera */
+}
+
+/* Hours */
+.hours {
+  display: flex;
+  flex-direction: column;
+}
+
+.hour-slot {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.hour-slot:hover {
+  background-color: #e8f0fe;
+}
+
+.hour-label {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Task input container */
+.task-input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Task input */
+.task-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* Tasks */
+.hour-tasks {
+  margin-top: 10px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  background-color: #e8f0fe;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.task:hover {
+  background-color: #d2e3fc;
+}
+
+.task.completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.task-text {
+  flex-grow: 1;
+}
+
+/* Delete checkbox */
+.delete-checkbox {
+  margin-left: 10px;
+  cursor: pointer;
+}
+/* Добавьте стили для повседневных задач */
+.daily-tasks-section {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  overflow-y: auto; /* Растягиваем контейнер вниз */
+  max-height: 200px; /* Максимальная высота контейнера */
+}
+
+.daily-tasks-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.add-daily-task-button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-daily-task-button:hover {
+  background-color: #1565c0;
+}
+
+.daily-tasks-list {
+  display: flex;
+  flex-wrap: wrap; /* Размещаем задачи в несколько строк */
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.daily-task {
+  display: flex;
+  align-items: center;
+  background-color: #e8f0fe;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 100px; /* Минимальная ширина задачи */
+  justify-content: space-between;
+}
+
+.daily-task:hover {
+  background-color: #d2e3fc;
+}
+
+.daily-task-input {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+
+.daily-task-text {
+  flex-grow: 1;
+  font-size: 14px;
+  word-wrap: break-word; /* Перенос текста */
+}
+
+.remove-daily-task {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.remove-daily-task:hover {
+  color: #ff0000;
+}
+
+.droppable-slot {
+  min-height: 50px;
+}
