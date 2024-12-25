@@ -128,7 +128,7 @@ const App = () => {
 
   // Добавление повседневной задачи
   const addDailyTask = () => {
-    setDailyTasks([...dailyTasks, { id: Date.now(), text: "", isEditing: false }]);
+    setDailyTasks([...dailyTasks, { id: Date.now(), text: "", isEditing: true }]);
   };
 
   // Удаление повседневной задачи
@@ -228,6 +228,7 @@ const App = () => {
                       onRemove={removeDailyTask}
                       onUpdateText={updateDailyTaskText}
                       onKeyPress={(e) => handleDailyTaskKeyPress(e, task.id)}
+                      canDrag={!task.isEditing}
                   />
               ))}
             </div>
@@ -238,15 +239,15 @@ const App = () => {
 };
 
 // Компонент для перетаскивания задачи
-const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress }) => {
+const DraggableTask = ({task, onRemove, onUpdateText, onKeyPress, canDrag }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
     item: { task },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: !task.isEditing, // Запрещаем перетаскивание, если задача редактируется
-  }));
+    canDrag: () => canDrag,
+  }), [canDrag]);
 
   return (
       <div
