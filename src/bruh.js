@@ -3,7 +3,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import "./App.css";
 
-const daysOfWeek = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const getWeekDates = (offset = 0) => {
     const today = new Date();
@@ -26,8 +26,6 @@ const formatDate = (date) => {
     return `${day < 10 ? "0" : ""}${day}.${month < 10 ? "0" : ""}${month}`;
 };
 
-
-
 const hoursOfDay = Array.from({ length: 24 }, (_, i) => i); // 0:00 - 23:00
 
 const App = () => {
@@ -36,84 +34,14 @@ const App = () => {
     const [weekDates, setWeekDates] = useState(getWeekDates(currentWeekOffset));
     const [editingSlot, setEditingSlot] = useState(null); // { day, hour }
     const [dailyTasks, setDailyTasks] = useState([]); // Повседневные задачи
-    const [isAddingDailyTask, setIsAddingDailyTask] = useState(false);
-
-    const fetchDailyTasks = async () => {
-        const response = await fetch('http://localhost:8080/api/daily-tasks');
-        const data = await response.json();
-        setDailyTasks(data.map(task => ({ id: task.id, text: task.text, isEditing: false })));
-    };
-
-    const createDailyTask = async (text) => {
-        const response = await fetch('http://localhost:8080/api/daily-tasks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ text }),
-        });
-        const data = await response.json();
-        return data;
-    };
-
-    const deleteDailyTask = async (id) => {
-        await fetch(`http://localhost:8080/api/daily-tasks/${id}`, {
-            method: 'DELETE',
-        });
-    };
-
-    const updateDailyTask = async (id, text) => {
-        const response = await fetch(`http://localhost:8080/api/daily-tasks/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ text }),
-        });
-        const data = await response.json();
-        return data;
-    };
+    const [isAddingDailyTask, setIsAddingDailyTask] = useState(false); // Состояние для блокировки кнопки
 
     useEffect(() => {
         setWeekDates(getWeekDates(currentWeekOffset));
-        fetchTasksForWeek(currentWeekOffset);
-        fetchDailyTasks(); // Загружаем постоянные задачи
     }, [currentWeekOffset]);
 
-    const fetchTasksForWeek = async (offset) => {
-        const dates = getWeekDates(offset);
-        const tasksForWeek = {};
-
-        for (let i = 0; i < dates.length; i++) {
-            const date = dates[i];
-            const response = await fetch(`http://localhost:8080/task-api/tasks?date=${date.toISOString().split('T')[0]}`);
-            const data = await response.json();
-            tasksForWeek[daysOfWeek[i]] = data.reduce((acc, task) => {
-                const hour = new Date(`1970-01-01T${task.time}`).getHours();
-                if (!acc[hour]) acc[hour] = [];
-                acc[hour].push({ id: task.id, task: task.description }); // Убрали completed
-                return acc;
-            }, {});
-        }
-
-        setTasks({ [offset]: tasksForWeek });
-    };
-
-    const addTask = async (day, hour, task) => {
+    const addTask = (day, hour, task) => {
         if (task.trim()) {
-            const date = weekDates[daysOfWeek.indexOf(day)];
-            const response = await fetch('http://localhost:8080/task-api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    description: task,
-                    date: date.toISOString().split('T')[0],
-                    time: `${hour < 10? '0' + hour: hour}:00:00`,
-                }),
-            });
-            const data = await response.json();
             setTasks((prevTasks) => ({
                 ...prevTasks,
                 [currentWeekOffset]: {
@@ -122,7 +50,7 @@ const App = () => {
                         ...prevTasks[currentWeekOffset]?.[day],
                         [hour]: [
                             ...(prevTasks[currentWeekOffset]?.[day]?.[hour] || []),
-                            { id: data.id, task: data.description }, // Убрали completed
+                            { task, completed: false },
                         ],
                     },
                 },
@@ -130,11 +58,22 @@ const App = () => {
         }
     };
 
-    const deleteTask = async (day, hour, index) => {
-        const task = tasks[currentWeekOffset][day][hour][index];
-        await fetch(`http://localhost:8080/task-api/tasks/${task.id}`, {
-            method: 'DELETE',
-        });
+    const toggleTaskCompletion = (day, hour, index) => {
+        setTasks((prevTasks) => ({
+            ...prevTasks,
+            [currentWeekOffset]: {
+                ...prevTasks[currentWeekOffset],
+                [day]: {
+                    ...prevTasks[currentWeekOffset][day],
+                    [hour]: prevTasks[currentWeekOffset][day][hour].map((item, i) =>
+                        i === index ? { ...item, completed: !item.completed } : item
+                    ),
+                },
+            },
+        }));
+    };
+
+    const deleteTask = (day, hour, index) => {
         setTasks((prevTasks) => ({
             ...prevTasks,
             [currentWeekOffset]: {
@@ -164,18 +103,21 @@ const App = () => {
         const weekTasks = tasks[currentWeekOffset] || {};
         return (
             <div className="hour-tasks">
-                {weekTasks[day]?.[hour]?.map(({ id, task }, index) => (
+                {weekTasks[day]?.[hour]?.map(({ task, completed }, index) => (
                     <div
-                        key={id}
-                        className="task"
-                        onClick={(e) => e.stopPropagation()} // Оставили только предотвращение всплытия
+                        key={index}
+                        className={`task ${completed ? "completed" : ""}`}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Предотвращаем всплытие события
+                            toggleTaskCompletion(day, hour, index);
+                        }}
                     >
                         <div className="task-text">{task}</div>
                         <input
                             type="checkbox"
                             className="delete-checkbox"
                             onClick={(e) => {
-                                e.stopPropagation();
+                                e.stopPropagation(); // Предотвращаем всплытие события
                                 deleteTask(day, hour, index);
                             }}
                         />
@@ -187,37 +129,33 @@ const App = () => {
 
     // Добавление повседневной задачи
     const addDailyTask = () => {
-        setIsAddingDailyTask(true);
-        const newTask = { id: Date.now(), text: "", isEditing: true };
-        setDailyTasks([...dailyTasks, newTask]);
+        setIsAddingDailyTask(true); // Блокируем кнопку
+        setDailyTasks([...dailyTasks, { id: Date.now(), text: "", isEditing: true }]);
     };
 
-    const removeDailyTask = async (id) => {
-        const task = dailyTasks.find(task => task.id === id);
-        if (task.id) {
-            await deleteDailyTask(id);
-        }
+    // Удаление повседневной задачи
+    const removeDailyTask = (id) => {
         setDailyTasks(dailyTasks.filter((task) => task.id !== id));
-        setIsAddingDailyTask(false);
+        setIsAddingDailyTask(false); // Разблокируем кнопку, если задача удалена
     };
 
+    // Обновление текста повседневной задачи
     const updateDailyTaskText = (id, text) => {
-        setDailyTasks(dailyTasks.map((task) => (task.id === id ? { ...task, text } : task)));
+        setDailyTasks(
+            dailyTasks.map((task) => (task.id === id ? { ...task, text } : task))
+        );
     };
 
-    const handleDailyTaskKeyPress = async (e, id) => {
+    // Фиксация текста задачи после нажатия Enter
+    const handleDailyTaskKeyPress = (e, id) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            const task = dailyTasks.find(task => task.id === id);
-            if (task.text.trim()) {
-                const createdTask = await createDailyTask(task.text);
-                setDailyTasks(dailyTasks.map((task) => task.id === id ? { ...task, id: createdTask.id, isEditing: false } : task));
-                setIsAddingDailyTask(false);
-            } else {
-                // Если текст пустой, удаляем задачу из состояния
-                setDailyTasks(dailyTasks.filter((task) => task.id !== id));
-                setIsAddingDailyTask(false);
-            }
+            setDailyTasks(
+                dailyTasks.map((task) =>
+                    task.id === id ? { ...task, isEditing: false } : task
+                )
+            );
+            setIsAddingDailyTask(false); // Разблокируем кнопку после фиксации текста
         }
     };
 
@@ -283,7 +221,11 @@ const App = () => {
                 {/* Блок с повседневными задачами */}
                 <div className="daily-tasks-section">
                     <h3>Daily Tasks</h3>
-                    <button onClick={addDailyTask} className="add-daily-task-button" disabled={isAddingDailyTask}>
+                    <button
+                        onClick={addDailyTask}
+                        className="add-daily-task-button"
+                        disabled={isAddingDailyTask} // Блокируем кнопку, если задача редактируется
+                    >
                         +
                     </button>
                     <div className="daily-tasks-list">
@@ -294,7 +236,6 @@ const App = () => {
                                 onRemove={removeDailyTask}
                                 onUpdateText={updateDailyTaskText}
                                 onKeyPress={(e) => handleDailyTaskKeyPress(e, task.id)}
-                                canDrag={!task.isEditing}
                             />
                         ))}
                     </div>
@@ -305,15 +246,15 @@ const App = () => {
 };
 
 // Компонент для перетаскивания задачи
-const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress, canDrag }) => {
+const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: "task",
-        item: { task },
+        item: { task }, // Передаём задачу как элемент для перетаскивания
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
-        canDrag: () => canDrag && !task.isEditing,
-    }), [canDrag, task.isEditing]);
+        canDrag: !task.isEditing, // Запрещаем перетаскивание, если задача редактируется
+    }));
 
     return (
         <div
@@ -347,7 +288,7 @@ const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress, canDrag }) =>
 const DroppableSlot = ({ day, hour, onDrop, children }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: "task",
-        drop: (item) => onDrop(day, hour, item),
+        drop: (item) => onDrop(day, hour, item), // Обрабатываем перетаскивание
         collect: (monitor) => ({
             isOver: monitor.isOver(),
         }),
