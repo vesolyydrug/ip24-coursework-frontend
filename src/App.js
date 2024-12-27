@@ -8,7 +8,7 @@ const daysOfWeek = ["Понедельник", "Вторник", "Среда", "�
 const getWeekDates = (offset = 0) => {
     const today = new Date();
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + 1 + offset * 7); // Monday of the current week
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1 + offset * 7);
 
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -22,20 +22,18 @@ const getWeekDates = (offset = 0) => {
 
 const formatDate = (date) => {
     const day = date.getDate();
-    const month = date.getMonth() + 1; // Months are zero-based
+    const month = date.getMonth() + 1;
     return `${day < 10 ? "0" : ""}${day}.${month < 10 ? "0" : ""}${month}`;
 };
 
-
-
-const hoursOfDay = Array.from({ length: 24 }, (_, i) => i); // 0:00 - 23:00
+const hoursOfDay = Array.from({ length: 24 }, (_, i) => i);
 
 const App = () => {
     const [tasks, setTasks] = useState({});
     const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
     const [weekDates, setWeekDates] = useState(getWeekDates(currentWeekOffset));
-    const [editingSlot, setEditingSlot] = useState(null); // { day, hour }
-    const [dailyTasks, setDailyTasks] = useState([]); // Повседневные задачи
+    const [editingSlot, setEditingSlot] = useState(null);
+    const [dailyTasks, setDailyTasks] = useState([]);
     const [isAddingDailyTask, setIsAddingDailyTask] = useState(false);
 
     const fetchDailyTasks = async () => {
@@ -77,7 +75,7 @@ const App = () => {
     useEffect(() => {
         setWeekDates(getWeekDates(currentWeekOffset));
         fetchTasksForWeek(currentWeekOffset);
-        fetchDailyTasks(); // Загружаем постоянные задачи
+        fetchDailyTasks();
     }, [currentWeekOffset]);
 
     const fetchTasksForWeek = async (offset) => {
@@ -91,7 +89,7 @@ const App = () => {
             tasksForWeek[daysOfWeek[i]] = data.reduce((acc, task) => {
                 const hour = new Date(`1970-01-01T${task.time}`).getHours();
                 if (!acc[hour]) acc[hour] = [];
-                acc[hour].push({ id: task.id, task: task.description }); // Убрали completed
+                acc[hour].push({ id: task.id, task: task.description });
                 return acc;
             }, {});
         }
@@ -122,7 +120,7 @@ const App = () => {
                         ...prevTasks[currentWeekOffset]?.[day],
                         [hour]: [
                             ...(prevTasks[currentWeekOffset]?.[day]?.[hour] || []),
-                            { id: data.id, task: data.description }, // Убрали completed
+                            { id: data.id, task: data.description },
                         ],
                     },
                 },
@@ -156,7 +154,7 @@ const App = () => {
             addTask(day, hour, e.target.value);
             setEditingSlot(null);
         } else if (e.key === "Escape") {
-            setEditingSlot(null); // Cancel task creation
+            setEditingSlot(null);
         }
     };
 
@@ -168,7 +166,7 @@ const App = () => {
                     <div
                         key={id}
                         className="task"
-                        onClick={(e) => e.stopPropagation()} // Оставили только предотвращение всплытия
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className="task-text">{task}</div>
                         <input
@@ -185,7 +183,7 @@ const App = () => {
         );
     };
 
-    // Добавление повседневной задачи
+
     const addDailyTask = () => {
         setIsAddingDailyTask(true);
         const newTask = { id: Date.now(), text: "", isEditing: true };
@@ -214,16 +212,14 @@ const App = () => {
                 setDailyTasks(dailyTasks.map((task) => task.id === id ? { ...task, id: createdTask.id, isEditing: false } : task));
                 setIsAddingDailyTask(false);
             } else {
-                // Если текст пустой, удаляем задачу из состояния
                 setDailyTasks(dailyTasks.filter((task) => task.id !== id));
                 setIsAddingDailyTask(false);
             }
         }
     };
 
-    // Перетаскивание задачи в календарь
+
     const handleDrop = (day, hour, item) => {
-        // Создаём копию задачи в выбранном дне и времени
         addTask(day, hour, item.task.text);
     };
 
@@ -282,7 +278,7 @@ const App = () => {
 
                 {/* Блок с повседневными задачами */}
                 <div className="daily-tasks-section">
-                    <h3>Daily Tasks</h3>
+                    <h3>Повседневные задачи</h3>
                     <button onClick={addDailyTask} className="add-daily-task-button" disabled={isAddingDailyTask}>
                         +
                     </button>
@@ -304,7 +300,6 @@ const App = () => {
     );
 };
 
-// Компонент для перетаскивания задачи
 const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress, canDrag }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: "task",
@@ -327,7 +322,7 @@ const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress, canDrag }) =>
                     value={task.text}
                     onChange={(e) => onUpdateText(task.id, e.target.value)}
                     onKeyDown={onKeyPress}
-                    placeholder="Enter task"
+                    placeholder="Введите задачу"
                     className="daily-task-input"
                     autoFocus
                 />
@@ -343,7 +338,7 @@ const DraggableTask = ({ task, onRemove, onUpdateText, onKeyPress, canDrag }) =>
     );
 };
 
-// Компонент для приёма перетаскиваемой задачи
+
 const DroppableSlot = ({ day, hour, onDrop, children }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: "task",
